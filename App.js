@@ -6,6 +6,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 const WORD_LENGTH = 5;
 const NUM_GUESSES = 6;
 const ROUND_TIME = 120;
+const DEV_MODE = false;
 
 
 
@@ -48,7 +49,7 @@ function Timer({ timeleft }) {
 }
 
 function Wins({ gameData }) {
-  return (<div>Score: {gameData.winCount}</div>)
+  return (<div>Score: {gameData.winCount} {DEV_MODE ? gameData.actualWord : ''}</div>)
 }
 
 function Alerts({ alert, seconds, gameData }) {
@@ -65,7 +66,7 @@ function Alerts({ alert, seconds, gameData }) {
   }
 
   if (seconds === 0) {
-    alert.message = "Game over! Points: " + gameData.winCount;
+    alert.message = "Game over! Points: " + gameData.winCount + " (" + gameData.actualWord + ")";
     alert.type = "success"
   }
   if (seconds === ROUND_TIME) {
@@ -123,16 +124,16 @@ function Button({ name, gameData, setgameData, inputHandler }) {
 
   const getColor = (thisLetter) => {
     if (thisLetter !== '' && isPerfectlyMatched(thisLetter)) {
-      return "btn btn-success";
+      return "key btn btn-success";
     }
     else if (thisLetter !== '' && isMatched(thisLetter)) {
-      return "btn btn-warning";
+      return "key btn btn-warning";
     }
     else if (isUsed(thisLetter)) {
-      return "btn btn-dark";
+      return "key btn btn-dark";
     }
     else {
-      return "btn btn-secondary";
+      return "key btn btn-secondary";
     }
   }
 
@@ -154,7 +155,9 @@ function SpecialButton({ name, gameData, setgameData, inputHandler }) {
       </svg>
     }
     if (mode === "Enter") {
-      return "ENTER"
+      return <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-return-left" viewBox="0 0 16 16">
+      <path fillRule="evenodd" d="M14.5 1.5a.5.5 0 0 1 .5.5v4.8a2.5 2.5 0 0 1-2.5 2.5H2.707l3.347 3.346a.5.5 0 0 1-.708.708l-4.2-4.2a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 8.3H12.5A1.5 1.5 0 0 0 14 6.8V2a.5.5 0 0 1 .5-.5z"/>
+    </svg>
     }
 
   }
@@ -166,16 +169,60 @@ function SpecialButton({ name, gameData, setgameData, inputHandler }) {
   )
 }
 
+
 function LetterBox(props) {
 
   var thisLetter = props.gameData.guessMatrix[props.row][props.column];
+
+  // handling for special wordle yellow coloring rules.
+  const redundantYellow = () =>{
+    var perfectMatches = 0;
+    var numThisLetter = 0;
+    var imperfectMatches = 0;
+    var perfectMatchLocations = [];
+    for (let i=0; i < WORD_LENGTH; i++){
+      //console.log(thisLetter + " === " + props.gameData.guessMatrix[props.row][i] + " === " + props.gameData.actualWord.charAt(i))
+      if(thisLetter !== '' && thisLetter === props.gameData.guessMatrix[props.row][i] && thisLetter === props.gameData.actualWord.charAt(i)){
+        //console.log("increment perfectMatches");
+        perfectMatches++;
+        perfectMatchLocations.push(i);
+      }
+      if(thisLetter !== '' && thisLetter === props.gameData.guessMatrix[props.row][i]){
+        numThisLetter++;
+      }
+    }
+
+    imperfectMatches = numThisLetter - perfectMatches;
+
+    var imperfectPreceeding = 0;
+    for (let i=0; i < props.column; i++){
+      if(thisLetter !== '' && thisLetter === props.gameData.guessMatrix[props.row][i] && thisLetter !== props.gameData.actualWord.charAt(props.column)){
+        imperfectPreceeding++;
+      }
+    }
+
+    var numOfThisLetterInWord = props.gameData.actualWord.split(thisLetter).length - 1;
+
+//console.log("RedundantYellow row: " + props.row + " perfectMatches:"+ perfectMatches + " numThisLetter:"+ numThisLetter + " imperfectMatches:"+ imperfectMatches + " imperfectPreceeding:" + imperfectPreceeding)
+    if(imperfectPreceeding + perfectMatches >= numOfThisLetterInWord){
+      // This one is redundant,
+      return true;
+    }
+    else return false;
+  }
 
   const getColor = () => {
     if (props.gameData.currRow > props.row && thisLetter === props.gameData.actualWord.charAt(props.column)) {
       return "letterbox alert alert-success";
     }
     else if (props.gameData.currRow > props.row && thisLetter !== '' && props.gameData.actualWord.includes(thisLetter)) {
-      return "letterbox alert alert-warning";
+      // Special secret worlde rules... if the letter is already accounted for... 
+      if (redundantYellow()){
+        return "letterbox alert alert-dark";
+      }
+      else {
+        return "letterbox alert alert-warning";
+      }
     }
     else if (props.gameData.currRow > props.row && thisLetter !== '' && !props.gameData.actualWord.includes(thisLetter)) {
       return "letterbox alert alert-dark";
@@ -287,8 +334,13 @@ function App() {
 
     }
 
-    console.log(gameData.currRow);
+    //console.log(gameData.currRow);
     var localGameData = gameData;
+
+    if(seconds < 1){
+      // game is over
+      return;
+    }
 
     if (input === "Enter") {
       if (localGameData.currCol === (WORD_LENGTH)) {
@@ -303,7 +355,7 @@ function App() {
           word += localGameData.guessMatrix[localGameData.currRow][i];
         }
 
-        console.log(word);
+        //console.log(word);
         if (!isValidWord(word)) {
           setAlert({ message: "" + word + " is not in the word list", type: "invalid" });
           return;
@@ -313,12 +365,12 @@ function App() {
           gameData.winCount++;
           newRound();
           setAlert({ message: "You got it!: " + word, type: "success" });
-          console.log("You Win");
+          //console.log("You Win");
           return;
         }
         else if (localGameData.currRow === (NUM_GUESSES - 1)) {
           setSeconds(0);
-          console.log("You Lose")
+          //console.log("You Lose")
         }
 
         localGameData.currRow++;
@@ -342,9 +394,9 @@ function App() {
     }
     // We need a new reference to this object, or react wont re-render it...  Better solutions??
     setgameData(JSON.parse(JSON.stringify(localGameData)))
-    console.log(input + " being set to: " + localGameData.currRow + localGameData.currCol)
+    //console.log(input + " being set to: " + localGameData.currRow + localGameData.currCol)
 
-    console.log(localGameData)
+    //console.log(localGameData)
 
   }, [gameData, startTimer, isTimerRunning])
 
