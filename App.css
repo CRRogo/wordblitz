@@ -61,7 +61,7 @@
   margin-bottom: 10px;
   padding: 0;
   font-weight: bold;
-  margin-left: 5px;
+  margin-left: 8px;
 }
 
 .keyrow {
@@ -78,6 +78,12 @@
 
 .message {
   padding: 5px 10px;
-  min-height: 41px;
+  min-height: 42px;
   font-size: 20px;
+}
+
+.key {
+  width: 26px;
+  padding-left: 2px;
+  padding-right: 2px;
 }
