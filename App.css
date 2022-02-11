@@ -39,13 +39,14 @@
 
 .btn {
   margin-right: 5px;
+  font-size: .8em;
 }
 
 #letterBoxHolder{
-  width: 320px;
+
   min-width: 320px;
-  font-size: 1em;
   margin-bottom: 10px;
+  max-width: 700px;
 }
 
 #keyboard{
@@ -54,9 +55,8 @@
 }
 
 .letterbox {
-  
-  height: 50px;
-  font-size: 31px;
+  height: 1.6em;
+  font-size: 2em;
   margin-right: 0;
   margin-bottom: 6px;
   padding: 0;
@@ -66,9 +66,9 @@
 }
 
 .keyrow {
-  height: 44px;
-  min-height: 44px;
+
   padding-left: 4px;
+  padding-bottom: 4px;
 }
 
 .col {
@@ -86,9 +86,7 @@
 }
 
 .key {
-  width: 26px;
-  padding-left: 2px;
-  padding-right: 2px;
+  padding: 1rem 0.55rem;
 }
 
 .row {

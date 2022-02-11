@@ -167,7 +167,7 @@ function SpecialButton({ name, gameData, setgameData, inputHandler }) {
 
 
   return (
-    <button className="btn btn-secondary" onClick={() => inputHandler(name)}>{displayString(name)}</button>
+    <button className="key btn btn-secondary" onClick={() => inputHandler(name)}>{displayString(name)}</button>
 
   )
 }
@@ -180,8 +180,6 @@ function LetterBox(props) {
   // handling for special wordle yellow coloring rules.
   const redundantYellow = () =>{
     var perfectMatches = 0;
-    var numThisLetter = 0;
-    var imperfectMatches = 0;
     var perfectMatchLocations = [];
     for (let i=0; i < WORD_LENGTH; i++){
       //console.log(thisLetter + " === " + props.gameData.guessMatrix[props.row][i] + " === " + props.gameData.actualWord.charAt(i))
@@ -190,12 +188,8 @@ function LetterBox(props) {
         perfectMatches++;
         perfectMatchLocations.push(i);
       }
-      if(thisLetter !== '' && thisLetter === props.gameData.guessMatrix[props.row][i]){
-        numThisLetter++;
-      }
-    }
 
-    imperfectMatches = numThisLetter - perfectMatches;
+    }
 
     var imperfectPreceeding = 0;
     for (let i=0; i < props.column; i++){
@@ -237,7 +231,7 @@ function LetterBox(props) {
 
   // I cant concatinate the response of getColor to "alert alert-"
   return (
-    <div className="col">
+    <div className="col col-sm-2">
       <div className={getColor()}>{thisLetter}</div>
     </div>
   )
@@ -246,7 +240,7 @@ function LetterBox(props) {
 function GuessRow(props) {
   return (
 
-    <div className="row">
+    <div className="row  g-0 justify-content-sm-center">
       <LetterBox row={props.row} column="0" gameData={props.gameData} />
       <LetterBox row={props.row} column="1" gameData={props.gameData} />
       <LetterBox row={props.row} column="2" gameData={props.gameData} />
@@ -359,7 +353,7 @@ function App() {
         }
 
         //console.log(word);
-        if (!isValidWord(word)) {
+        if (!DEV_MODE && !isValidWord(word)) {
           setAlert({ message: "" + word + " is not in the word list", type: "invalid" });
           return;
         }
@@ -401,7 +395,7 @@ function App() {
 
     //console.log(localGameData)
 
-  }, [gameData, startTimer, isTimerRunning])
+  }, [gameData, startTimer, isTimerRunning, seconds])
 
   // UseEffect calling this function (in additon to the button) caused all kinds of problems with the state, 
   // this useCallback fixed them.   this is complex, do more research on this.
