@@ -83,6 +83,9 @@
   min-height: 1em;
   font-size: .8em;
   margin-bottom: 0px;
+  position: absolute;
+    z-index: 1;
+    top: 10em;
 }
 
 .key {
@@ -91,4 +94,16 @@
 
 .row {
   --bs-gutter-x: 0px;
+}
+
+
+.fadeOut{
+  opacity:0;
+  transition: opacity .5s 1s;
+
+}
+.fadeIn{
+  opacity:1;
+  transition: opacity 0.1s;
+
 }

@@ -7,7 +7,7 @@ import { Modal } from 'react-bootstrap'
 const WORD_LENGTH = 5;
 const NUM_GUESSES = 6;
 const ROUND_TIME = 120;
-const DEV_MODE = false;
+const DEV_MODE = true;
 
 
 
@@ -78,22 +78,28 @@ function Wins({ gameData }) {
 }
 
 function Alerts({ alert, seconds, gameData }) {
-  const getColor = () => {
-    if (alert.type === 'invalid') {
-      return "message alert alert-danger";
-    }
-    else if (alert.type === 'success') {
-      return "message alert alert-success";
-    }
-    else {
-      return "message alert alert-secondary";
-    }
+
+  var fade = "fadeIn";
+  if(seconds < alert.timestamp){
+    fade = "fadeOut";
   }
 
-  if (seconds === ROUND_TIME) {
+  const getColor = () => {
+    if (alert.type === 'invalid') {
+      return "message alert alert-danger " + fade;
+    }
+    else if (alert.type === 'success') {
+      return "message alert alert-success " + fade;
+    }
+    else {
+      return "message alert alert-dark " + fade;
+    }
+  }
+ // Stylistically dont like this
+ /* if (seconds === ROUND_TIME) {
     alert.message = "Start typing to begin";
     alert.type = "default"
-  }
+  }*/
   if (alert.message === "" || alert.message === null){
     alert.message = " "
   }
@@ -371,14 +377,14 @@ function App() {
 
         //console.log(word);
         if (!DEV_MODE && !isValidWord(word)) {
-          setAlert({ message: "" + word + " is not in word list", type: "invalid" });
+          setAlert({ message: "" + word + " is not in word list", type: "invalid", timestamp: seconds});
           return;
         }
 
         if (perfLetters === WORD_LENGTH) {
           gameData.winCount++;
           newRound();
-          setAlert({ message: "You got it!: " + word, type: "success" });
+          setAlert({ message: "You got it!: " + word, type: "success", timestamp: seconds});
           //console.log("You Win");
           return;
         }
@@ -392,7 +398,7 @@ function App() {
       }
       else {
         //Handle invalid enter push.
-        setAlert({ message: "Type a full word", type: "invalid" });
+        setAlert({ message: "Type a full word", type: "invalid", timestamp: seconds});
       }
 
 
@@ -407,7 +413,7 @@ function App() {
       if (!isTimerRunning) {
         startTimer();
         
-        setAlert({ message: "", type: "success" });
+        setAlert({ message: "", type: "success", timestamp: seconds});
       }
     }
     // We need a new reference to this object, or react wont re-render it...  Better solutions??
@@ -445,7 +451,7 @@ function App() {
 
 
         
-
+<Title />
 <Alerts alert={alert} seconds={seconds} gameData={gameData} />
         <div className="container">
           <div className='row'>
