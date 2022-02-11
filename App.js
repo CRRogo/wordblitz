@@ -1,6 +1,7 @@
 import './App.css';
 import { DICTIONARY, DICTIONARY_EXTENDED } from './Dictionary.js'
 import React, { useState, useEffect, useCallback } from 'react';
+import { Modal } from 'react-bootstrap'
 
 // Global constants seem fine, since they will never change, they have nothing to do with state or re-rendering events
 const WORD_LENGTH = 5;
@@ -8,6 +9,30 @@ const NUM_GUESSES = 6;
 const ROUND_TIME = 120;
 const DEV_MODE = false;
 
+
+
+function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
+
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  return (
+    <Modal show={seconds <= 0} onHide={handleClose}>
+        <Modal.Header >
+          <Modal.Title>Game Over! Score: {gameData.winCount}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            <div>Your last word was: {gameData.actualWord}</div>
+        
+        </Modal.Body>
+        <Modal.Footer>
+          <RestartButton gameData={gameData} seconds={seconds} setgameData={setgameData} setSeconds={setSeconds} />
+        </Modal.Footer>
+      </Modal>
+  )
+}
 
 
 function RestartButton({ gameData, setgameData, seconds, setSeconds }) {
@@ -65,16 +90,8 @@ function Alerts({ alert, seconds, gameData }) {
     }
   }
 
-  if (seconds === 0) {
-    alert.message = "Game over! Points: " + gameData.winCount + " (" + gameData.actualWord + ")";
-    alert.type = "success"
-  }
   if (seconds === ROUND_TIME) {
     alert.message = "Start typing to begin";
-    alert.type = "default"
-  }
-  if (seconds === ROUND_TIME -  1) {
-    alert.message = " ";
     alert.type = "default"
   }
   if (alert.message === "" || alert.message === null){
@@ -86,11 +103,11 @@ function Alerts({ alert, seconds, gameData }) {
 
 function Title() {
   return (
-    <h1>Word Blitz</h1>
+    <h3>WordBlitz</h3>
   )
 }
 
-function Button({ name, gameData, setgameData, inputHandler }) {
+function KeyButton({ name, gameData, setgameData, inputHandler }) {
 
   const isPerfectlyMatched = (thisLetter) => {
     for (var r = 0; r < gameData.currRow; r++) {
@@ -354,7 +371,7 @@ function App() {
 
         //console.log(word);
         if (!DEV_MODE && !isValidWord(word)) {
-          setAlert({ message: "" + word + " is not in the word list", type: "invalid" });
+          setAlert({ message: "" + word + " is not in word list", type: "invalid" });
           return;
         }
 
@@ -387,7 +404,11 @@ function App() {
     else if (/^[A-Z]$/i.test(input) && localGameData.currCol < WORD_LENGTH) {
       localGameData.guessMatrix[localGameData.currRow][localGameData.currCol] = input.toUpperCase();
       localGameData.currCol++;
-      if (!isTimerRunning) startTimer();
+      if (!isTimerRunning) {
+        startTimer();
+        
+        setAlert({ message: "", type: "success" });
+      }
     }
     // We need a new reference to this object, or react wont re-render it...  Better solutions??
     setgameData(JSON.parse(JSON.stringify(localGameData)))
@@ -420,17 +441,18 @@ function App() {
     <div className="App">
       <header className="App-header">
 
+<ScoreBoard  gameData={gameData} seconds={seconds} setgameData={setgameData} setSeconds={setSeconds} />
+
+
+        
+
+<Alerts alert={alert} seconds={seconds} gameData={gameData} />
         <div className="container">
           <div className='row'>
             <div className='col'>
-              <Title />
-            </div>
-            <div className='col'>
-              <RestartButton gameData={gameData} seconds={seconds} setgameData={setgameData} setSeconds={setSeconds} />
             </div>
           </div>
         </div>
-        <Alerts alert={alert} seconds={seconds} gameData={gameData} />
 
         <div className="container">
           <div className='row'>
@@ -455,37 +477,37 @@ function App() {
 
         <div className="container" id="keyboard">
           <div className="keyrow">
-            <Button name="Q" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="W" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="E" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="R" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="T" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="Y" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="U" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="I" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="O" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="P" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="Q" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="W" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="E" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="R" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="T" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="Y" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="U" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="I" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="O" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="P" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
           </div>
           <div className="keyrow">
-            <Button name="A" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="S" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="D" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="F" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="G" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="H" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="J" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="K" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="L" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="A" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="S" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="D" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="F" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="G" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="H" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="J" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="K" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="L" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
           </div>
           <div className="keyrow">
             <SpecialButton name="Enter" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="Z" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="X" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="C" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="V" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="B" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="N" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <Button name="M" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="Z" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="X" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="C" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="V" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="B" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="N" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            <KeyButton name="M" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
             <SpecialButton name="Backspace" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
           </div>
         </div>
