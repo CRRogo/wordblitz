@@ -1,13 +1,13 @@
 import './App.css';
 import { DICTIONARY, DICTIONARY_EXTENDED } from './Dictionary.js'
 import React, { useState, useEffect, useCallback } from 'react';
-import { Modal } from 'react-bootstrap'
+import { Button, Modal } from 'react-bootstrap'
 
 // Global constants seem fine, since they will never change, they have nothing to do with state or re-rendering events
 const WORD_LENGTH = 5;
 const NUM_GUESSES = 6;
 const ROUND_TIME = 120;
-const DEV_MODE = false;
+const DEV_MODE = true;
 
 
 
@@ -35,11 +35,50 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
 }
 
 
+function Welcome({ gameData, setgameData, seconds, setSeconds }) {
+
+  const [show, setShow] = useState(true);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  return (
+
+
+    <Modal show={show} onHide={handleClose}>
+        <Modal.Header >
+          <Modal.Title>WordBlitz</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            <ul>
+            <li>Try to solve as many word puzzles as you can in the allotted time.</li>
+            <li>The timer will start as soon as you start typing!</li>
+            <li>Type a 5 letter word and hit ↩ (Enter) to submit it</li>
+            <li>
+            <div>🟩 Perfect match</div>
+            <div>🟨 Right letter, wrong location</div>
+            <div>⬛ Letter not in word</div>
+            </li>
+            </ul>
+            <div>A new puzzle will begin immediately after you solve the puzzle, each puzzle solved earns 1 point.</div>
+        
+        </Modal.Body>
+        <Modal.Footer>
+        <Button variant="primary" onClick={handleClose}>
+            Lets Play!
+          </Button>
+        </Modal.Footer>
+      </Modal>
+  )
+}
+
+
 function RestartButton({ gameData, setgameData, seconds, setSeconds }) {
 
   // Finding it easier to repeat some functions rather than make them available to both methods.. 
-  // This is probably bad practice
+  // This is probably bad practice.  
   function getRandWord() {
+
     return DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)].toUpperCase();
   }
 
@@ -447,10 +486,9 @@ function App() {
       <header className="App-header">
 
 <ScoreBoard  gameData={gameData} seconds={seconds} setgameData={setgameData} setSeconds={setSeconds} />
-
+<Welcome />
 
         
-<Title />
 <Alerts alert={alert} seconds={seconds} gameData={gameData} />
         <div className="container">
           <div className='row'>
