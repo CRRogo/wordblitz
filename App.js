@@ -74,11 +74,14 @@ function Alerts({ alert, seconds, gameData }) {
     alert.type = "default"
   }
   if (seconds === ROUND_TIME -  1) {
-    alert.message = "";
+    alert.message = " ";
     alert.type = "default"
   }
+  if (alert.message === "" || alert.message === null){
+    alert.message = " "
+  }
 
-  return (<div className={getColor()} style={{ visibility: alert.message.length > 0 ? 'visible' : 'hidden' }}>{alert.message}</div>);
+  return (<div className={getColor()} style={{ visibility: alert.message.length > 1 ? 'visible' : 'hidden' }}>{alert.message}&nbsp;</div>);
 }
 
 function Title() {

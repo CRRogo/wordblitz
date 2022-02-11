@@ -38,12 +38,12 @@
 }
 
 .btn {
-  margin-right: 6px;
+  margin-right: 5px;
 }
 
 #letterBoxHolder{
-  width: 380px;
-  min-width: 380px;
+  width: 320px;
+  min-width: 320px;
   font-size: 1em;
   margin-bottom: 10px;
 }
@@ -54,19 +54,21 @@
 }
 
 .letterbox {
-  width: 55px;
-  height: 55px;
-  font-size: 34px;
+  
+  height: 50px;
+  font-size: 31px;
   margin-right: 0;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   padding: 0;
   font-weight: bold;
-  margin-left: 8px;
+  margin-left: 4px;
+  margin-right: 4px;
 }
 
 .keyrow {
   height: 44px;
   min-height: 44px;
+  padding-left: 4px;
 }
 
 .col {
@@ -78,12 +80,17 @@
 
 .message {
   padding: 5px 10px;
-  min-height: 42px;
-  font-size: 20px;
+  min-height: 1em;
+  font-size: .8em;
+  margin-bottom: 0px;
 }
 
 .key {
   width: 26px;
   padding-left: 2px;
   padding-right: 2px;
+}
+
+.row {
+  --bs-gutter-x: 0px;
 }
