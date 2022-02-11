@@ -49,7 +49,7 @@ function Timer({ timeleft }) {
 }
 
 function Wins({ gameData }) {
-  return (<div>Score: {gameData.winCount} {DEV_MODE ? gameData.actualWord : ''}</div>)
+  return (<div>Points: {gameData.winCount} {DEV_MODE ? gameData.actualWord : ''}</div>)
 }
 
 function Alerts({ alert, seconds, gameData }) {
