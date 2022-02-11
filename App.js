@@ -7,7 +7,7 @@ import { Modal } from 'react-bootstrap'
 const WORD_LENGTH = 5;
 const NUM_GUESSES = 6;
 const ROUND_TIME = 120;
-const DEV_MODE = true;
+const DEV_MODE = false;
 
 
 
@@ -58,8 +58,7 @@ function RestartButton({ gameData, setgameData, seconds, setSeconds }) {
     ['', '', '', '', ''],
     ['', '', '', '', '']];
 
-    setgameData(JSON.parse(JSON.stringify(localGameData)))
-
+    setgameData(JSON.parse(JSON.stringify(localGameData)));
   }
 
   return (<button onClick={() => resetGame()} className='btn btn-primary' style={{ visibility: seconds === 0 ? 'visible' : 'hidden' }}>New Game</button>)
@@ -96,10 +95,10 @@ function Alerts({ alert, seconds, gameData }) {
     }
   }
  // Stylistically dont like this
- /* if (seconds === ROUND_TIME) {
-    alert.message = "Start typing to begin";
-    alert.type = "default"
-  }*/
+  if (seconds === ROUND_TIME) {
+    alert.message = "";
+    alert.type = ""
+  }
   if (alert.message === "" || alert.message === null){
     alert.message = " "
   }
@@ -362,7 +361,7 @@ function App() {
       return;
     }
 
-    if (input === "Enter") {
+    if (input === "Enter" && isTimerRunning) {
       if (localGameData.currCol === (WORD_LENGTH)) {
 
         // Check win condition here (everything matches)
