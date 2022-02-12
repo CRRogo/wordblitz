@@ -1,14 +1,15 @@
 import './App.css';
 import { DICTIONARY, DICTIONARY_EXTENDED } from './Dictionary.js'
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Modal } from 'react-bootstrap'
+import { Button, Modal, Tooltip, OverlayTrigger } from 'react-bootstrap'
+
 
 // Global constants seem fine, since they will never change, they have nothing to do with state or re-rendering events
 const WORD_LENGTH = 5;
 const NUM_GUESSES = 6;
-const ROUND_TIME = 120;
+const ROUND_TIME = 10;
+const DAILY_MODE_DAY_1 = "02/10/2022"; // The first day of daily mode
 const DEV_MODE = true;
-
 
 
 function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
@@ -18,19 +19,137 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
+
+
+  // TIMER STUFF
+  const [date, setDate] = useState(new Date());
+
+  //Replaces componentDidMount and componentWillUnmount
+  // Avoid memory leaks?  TOLEARN: learn more about useEffect.
+  useEffect(() => {
+    var timerID = setInterval(() => tick(), 1000);
+
+    return function cleanup() {
+      clearInterval(timerID);
+    };
+  });
+
+  function tick() {
+    setDate(new Date());
+  }
+
+
+
+  const getDateString = (dateIn) => {
+    if (dateIn === '' || dateIn == null) return "";
+    return dateIn.toLocaleTimeString([], { year: 'numeric', month: '2-digit', day: '2-digit' });
+  }
+
+  const getTimeLeft = (date) => {
+    if (date != null && date !== '') {
+      let tomorrow = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+      let diff = tomorrow - date; // difference in ms
+
+      if (diff <= 0) {
+        return "Ready Now!"
+      }
+
+      let secondsLeft = Math.round(diff / 1000); // convert to seconds
+      let hoursDisp = Math.floor(secondsLeft / 3600);
+      let minutesDisp = Math.floor((secondsLeft - (hoursDisp * 3600)) / 60);
+      let secondsDisp = (secondsLeft - (hoursDisp * 3600) - (minutesDisp * 60));
+
+      return String(hoursDisp).padStart(2, '0') + ":" + String(minutesDisp).padStart(2, '0') + ":" + String(secondsDisp).padStart(2, '0');
+    }
+    else {
+      return ""
+    }
+  }
+
+
+  const [clickMessage, setclickMessage] = useState("Click to copy results to clipboard");
+
+  function copyToClipBoard() {
+
+    var results = "WordBlitz: " + gameData.dateFormatted;
+    results += "\r\n"
+    results += gameData.winCount + " Points";
+    results += "\r\n"
+    gameData.guessHistory.forEach((element) => {
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (element[i].color === "G") {
+          results += "🟩"
+        }
+        else if (element[i].color === "Y") {
+          results += "🟨"
+        }
+        else if (element[i].color === "D") {
+          results += "⬛"
+        }
+        else {
+          if (DEV_MODE) {
+            results += "X"
+          }
+          else {
+            results += "⬛"
+          }
+          console.log("ERROR, history has invalid values: " + gameData)
+        }
+      }
+      results += "\r\n"
+    });
+
+    navigator.clipboard.writeText(results).then(function () {
+      console.log('Async: Copying to clipboard was successful!');
+      setclickMessage("Results copied to clipboard!");
+    }, function (err) {
+      console.error('Async: Could not copy text: ', err);
+    });
+
+  }
+
   return (
-    <Modal show={seconds <= 0} onHide={handleClose}>
-        <Modal.Header >
-          <Modal.Title>Game Over! Score: {gameData.winCount}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            <div>Your last word was: {gameData.actualWord}</div>
-        
-        </Modal.Body>
-        <Modal.Footer>
-          <RestartButton gameData={gameData} seconds={seconds} setgameData={setgameData} setSeconds={setSeconds} />
-        </Modal.Footer>
-      </Modal>
+    <Modal id="derp" show={seconds <= 0} onHide={handleClose}>
+      <Modal.Header >
+        <Modal.Title>WordBlitz </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <div>Game  #{gameData.gameID} {gameData.dateFormatted} </div>
+        <div><b> Score: {gameData.winCount}</b></div>
+        <div>The last word was: {gameData.actualWord}</div>
+
+      </Modal.Body>
+      <Modal.Footer>
+        <div className='container'>
+          <div className='row'>
+            <div className='col col-8'>
+              <p>Next Game: {getTimeLeft(date)}</p>
+            </div>
+            <div className='col col-4' style={{ textAlign: 'right' }}>
+
+
+              {['top'].map((placement) => (
+                <OverlayTrigger
+                  key={placement}
+                  placement={placement}
+                  overlay={
+                    <Tooltip id={`tooltip-${placement}`}>
+                      {clickMessage}
+                    </Tooltip>
+                  }
+                >
+                  <Button variant="success" onClick={copyToClipBoard}>Share &nbsp; <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-share" viewBox="0 0 16 16">
+                    <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z" />
+                  </svg></Button>
+                </OverlayTrigger>
+              ))}
+
+            </div>
+          </div>
+        </div>
+
+      </Modal.Footer>
+    </Modal>
   )
 }
 
@@ -46,29 +165,29 @@ function Welcome({ gameData, setgameData, seconds, setSeconds }) {
 
 
     <Modal show={show} onHide={handleClose}>
-        <Modal.Header >
-          <Modal.Title>WordBlitz</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            <ul>
-            <li>Try to solve as many word puzzles as you can in the allotted time.</li>
-            <li>The timer will start as soon as you start typing!</li>
-            <li>Type a 5 letter word and hit ↩ (Enter) to submit it</li>
-            <li>
+      <Modal.Header >
+        <Modal.Title>WordBlitz</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <ul>
+          <li>Try to solve as many word puzzles as you can in the allotted time.</li>
+          <li>The timer will start as soon as you start typing!</li>
+          <li>Type a 5 letter word and hit ↩ (Enter) to submit it</li>
+          <li>
             <div>🟩 Perfect match</div>
             <div>🟨 Right letter, wrong location</div>
             <div>⬛ Letter not in word</div>
-            </li>
-            </ul>
-            <div>A new puzzle will begin immediately after you solve the puzzle, each puzzle solved earns 1 point.</div>
-        
-        </Modal.Body>
-        <Modal.Footer>
+          </li>
+        </ul>
+        <div>A new puzzle will begin immediately after you solve the puzzle, each puzzle solved earns 1 point.</div>
+
+      </Modal.Body>
+      <Modal.Footer>
         <Button variant="primary" onClick={handleClose}>
-            Lets Play!
-          </Button>
-        </Modal.Footer>
-      </Modal>
+          Lets Play!
+        </Button>
+      </Modal.Footer>
+    </Modal>
   )
 }
 
@@ -118,7 +237,7 @@ function Wins({ gameData }) {
 function Alerts({ alert, seconds, gameData }) {
 
   var fade = "fadeIn";
-  if(seconds < alert.timestamp){
+  if (seconds < alert.timestamp) {
     fade = "fadeOut";
   }
 
@@ -133,12 +252,12 @@ function Alerts({ alert, seconds, gameData }) {
       return "message alert alert-dark " + fade;
     }
   }
- // Stylistically dont like this
+  // Stylistically dont like this
   if (seconds === ROUND_TIME) {
     alert.message = "";
     alert.type = ""
   }
-  if (alert.message === "" || alert.message === null){
+  if (alert.message === "" || alert.message === null) {
     alert.message = " "
   }
 
@@ -156,7 +275,7 @@ function KeyButton({ name, gameData, setgameData, inputHandler }) {
   const isPerfectlyMatched = (thisLetter) => {
     for (var r = 0; r < gameData.currRow; r++) {
       for (var c = 0; c < WORD_LENGTH; c++) {
-        if (thisLetter === gameData.actualWord.charAt(c) && thisLetter === gameData.guessMatrix[r][c]) {
+        if (thisLetter === gameData.actualWord.charAt(c) && thisLetter === gameData.guessMatrix[r][c].letter) {
           return true;
         }
       }
@@ -167,7 +286,7 @@ function KeyButton({ name, gameData, setgameData, inputHandler }) {
   const isMatched = (thisLetter) => {
     for (var r = 0; r < gameData.currRow; r++) {
       for (var c = 0; c < WORD_LENGTH; c++) {
-        if (gameData.actualWord.includes(thisLetter) && thisLetter === gameData.guessMatrix[r][c]) {
+        if (gameData.actualWord.includes(thisLetter) && thisLetter === gameData.guessMatrix[r][c].letter) {
           return true;
         }
       }
@@ -178,7 +297,7 @@ function KeyButton({ name, gameData, setgameData, inputHandler }) {
   const isUsed = (thisLetter) => {
     for (var r = 0; r < gameData.currRow; r++) {
       for (var c = 0; c < WORD_LENGTH; c++) {
-        if (thisLetter === gameData.guessMatrix[r][c]) {
+        if (thisLetter === gameData.guessMatrix[r][c].letter) {
           return true;
         }
       }
@@ -220,8 +339,8 @@ function SpecialButton({ name, gameData, setgameData, inputHandler }) {
     }
     if (mode === "Enter") {
       return <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-return-left" viewBox="0 0 16 16">
-      <path fillRule="evenodd" d="M14.5 1.5a.5.5 0 0 1 .5.5v4.8a2.5 2.5 0 0 1-2.5 2.5H2.707l3.347 3.346a.5.5 0 0 1-.708.708l-4.2-4.2a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 8.3H12.5A1.5 1.5 0 0 0 14 6.8V2a.5.5 0 0 1 .5-.5z"/>
-    </svg>
+        <path fillRule="evenodd" d="M14.5 1.5a.5.5 0 0 1 .5.5v4.8a2.5 2.5 0 0 1-2.5 2.5H2.707l3.347 3.346a.5.5 0 0 1-.708.708l-4.2-4.2a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 8.3H12.5A1.5 1.5 0 0 0 14 6.8V2a.5.5 0 0 1 .5-.5z" />
+      </svg>
     }
 
   }
@@ -236,53 +355,18 @@ function SpecialButton({ name, gameData, setgameData, inputHandler }) {
 
 function LetterBox(props) {
 
-  var thisLetter = props.gameData.guessMatrix[props.row][props.column];
-
-  // handling for special wordle yellow coloring rules.
-  const redundantYellow = () =>{
-    var perfectMatches = 0;
-    var perfectMatchLocations = [];
-    for (let i=0; i < WORD_LENGTH; i++){
-      //console.log(thisLetter + " === " + props.gameData.guessMatrix[props.row][i] + " === " + props.gameData.actualWord.charAt(i))
-      if(thisLetter !== '' && thisLetter === props.gameData.guessMatrix[props.row][i] && thisLetter === props.gameData.actualWord.charAt(i)){
-        //console.log("increment perfectMatches");
-        perfectMatches++;
-        perfectMatchLocations.push(i);
-      }
-
-    }
-
-    var imperfectPreceeding = 0;
-    for (let i=0; i < props.column; i++){
-      if(thisLetter !== '' && thisLetter === props.gameData.guessMatrix[props.row][i] && thisLetter !== props.gameData.actualWord.charAt(props.column)){
-        imperfectPreceeding++;
-      }
-    }
-
-    var numOfThisLetterInWord = props.gameData.actualWord.split(thisLetter).length - 1;
-
-//console.log("RedundantYellow row: " + props.row + " perfectMatches:"+ perfectMatches + " numThisLetter:"+ numThisLetter + " imperfectMatches:"+ imperfectMatches + " imperfectPreceeding:" + imperfectPreceeding)
-    if(imperfectPreceeding + perfectMatches >= numOfThisLetterInWord){
-      // This one is redundant,
-      return true;
-    }
-    else return false;
-  }
+  var thisLetter = props.gameData.guessMatrix[props.row][props.column].letter;
+  var thisColor = props.gameData.guessMatrix[props.row][props.column].color;
 
   const getColor = () => {
-    if (props.gameData.currRow > props.row && thisLetter === props.gameData.actualWord.charAt(props.column)) {
+    if (thisColor === "G") {
       return "letterbox alert alert-success";
     }
-    else if (props.gameData.currRow > props.row && thisLetter !== '' && props.gameData.actualWord.includes(thisLetter)) {
-      // Special secret worlde rules... if the letter is already accounted for... 
-      if (redundantYellow()){
-        return "letterbox alert alert-dark";
-      }
-      else {
-        return "letterbox alert alert-warning";
-      }
+    else if (thisColor === "Y") {
+      return "letterbox alert alert-warning";
+
     }
-    else if (props.gameData.currRow > props.row && thisLetter !== '' && !props.gameData.actualWord.includes(thisLetter)) {
+    else if (thisColor === "D") {
       return "letterbox alert alert-dark";
     }
     else {
@@ -313,38 +397,74 @@ function GuessRow(props) {
 
 function App() {
 
-  function getRandWord() {
-    return DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)].toUpperCase();
+  function random(seed) {
+    var x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  }
+
+  function getRandWord(seed) {
+    return DICTIONARY[Math.floor(random(seed) * DICTIONARY.length)].toUpperCase();
   }
 
   function isValidWord(word) {
     return DICTIONARY_EXTENDED.includes(word.toLowerCase());
   }
 
+
+
+  const getDateString = () => {
+    var dateObj = new Date();
+    var month = dateObj.getUTCMonth() + 1; //months from 1-12
+    var day = dateObj.getUTCDate();
+    var year = dateObj.getUTCFullYear();
+
+    return month + "/" + day + "/" + year;
+  }
+
+  function getUniqueGameNumber(date2) {
+    // Day 1 of WordBlitz Daily 
+    var date1 = new Date(DAILY_MODE_DAY_1);
+
+    // To calculate the time difference of two dates
+    var Difference_In_Time = date2.getTime() - date1.getTime();
+
+    // To calculate the no. of days between two dates
+    var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+    return Difference_In_Days;
+  }
+
+  const date = new Date(getDateString());
+  const prettyDate = date.toLocaleDateString([], { month: "numeric", day: "numeric" });
+
   // Using 1 megaobject to control everything about the state of the game.  
   // It seems like for a bigger app you might want to isolate things, but this makes my life easy for now
   const [gameData, setgameData] = useState(
     {
-      actualWord: getRandWord(),
+      actualWord: getRandWord(getUniqueGameNumber(date) + 0),
       currRow: 0,
       currCol: 0,
       gameState: 0,
+      gameID: getUniqueGameNumber(date),
+      date: date,
+      dateFormatted: prettyDate,
       winCount: 0,
-      guessMatrix:
-        [['', '', '', '', ''],
-        ['', '', '', '', ''],
-        ['', '', '', '', ''],
-        ['', '', '', '', ''],
-        ['', '', '', '', ''],
-        ['', '', '', '', '']]
+      guessMatrix: [[{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
+      [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
+      [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
+      [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
+      [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
+      [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }]],
+      guessHistory: []
     });
 
-  const [seconds, setSeconds] = useState(ROUND_TIME);
+
+//TODO:  If we can find game data in local storage...  and that game data is the same game number as the current game... load the game data.   (deal with modal welcome issues?)
+
   const [alert, setAlert] = useState({ message: "", type: "" });
 
 
-
   // TIMER STUFF
+  const [seconds, setSeconds] = useState(ROUND_TIME);
   const [intervalID, setIntervalID] = useState(null)
   const hasTimerEnded = seconds <= 0
   const isTimerRunning = intervalID != null
@@ -376,26 +496,84 @@ function App() {
   // This turned out to be a mega function to accept input.  Should probably avoid this.
   const acceptInput = useCallback((input) => {
 
+    function getRandWord(seed) {
+      return DICTIONARY[Math.floor(random(seed) * DICTIONARY.length)].toUpperCase();
+    }
+
     function newRound() {
       var localGameData = gameData;
-      localGameData.actualWord = getRandWord();
+      console.log(localGameData);
+      localGameData.actualWord = getRandWord(getUniqueGameNumber(new Date(localGameData.date)) + localGameData.winCount);
       localGameData.currRow = 0;
       localGameData.currCol = 0;
-      localGameData.guessMatrix = [['', '', '', '', ''],
-      ['', '', '', '', ''],
-      ['', '', '', '', ''],
-      ['', '', '', '', ''],
-      ['', '', '', '', ''],
-      ['', '', '', '', '']];
+      localGameData.guessMatrix = [[{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
+      [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
+      [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
+      [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
+      [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
+      [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }]];
 
       setgameData(JSON.parse(JSON.stringify(localGameData)))
 
     }
 
+
+    const redundantYellowTest = (localGameData, r, c) => {
+      var perfectMatches = 0;
+      var perfectMatchLocations = [];
+      var thisLetter = localGameData.guessMatrix[r][c].letter;
+
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        //console.log(thisLetter + " === " + props.gameData.guessMatrix[props.row][i] + " === " + props.gameData.actualWord.charAt(i))
+        if (thisLetter !== '' && thisLetter === localGameData.guessMatrix[r][i].letter && thisLetter === localGameData.actualWord.charAt(i)) {
+          //console.log("increment perfectMatches");
+          perfectMatches++;
+          perfectMatchLocations.push(i);
+        }
+
+      }
+
+      var imperfectPreceeding = 0;
+      for (let i = 0; i < c; i++) {
+        if (thisLetter !== '' && thisLetter === localGameData.guessMatrix[r][i].letter && thisLetter !== localGameData.actualWord.charAt(c)) {
+          imperfectPreceeding++;
+        }
+      }
+
+      var numOfThisLetterInWord = localGameData.actualWord.split(thisLetter).length - 1;
+
+      //console.log("RedundantYellow row: " + props.row + " perfectMatches:"+ perfectMatches + " numThisLetter:"+ numThisLetter + " imperfectMatches:"+ imperfectMatches + " imperfectPreceeding:" + imperfectPreceeding)
+      if (imperfectPreceeding + perfectMatches >= numOfThisLetterInWord) {
+        // This one is redundant,
+        return true;
+      }
+      else return false;
+    }
+
+    function assignColors(localGameData) {
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (localGameData.guessMatrix[localGameData.currRow][i].letter === localGameData.actualWord.charAt(i)) {
+          localGameData.guessMatrix[localGameData.currRow][i].color = 'G';
+        }
+        else if (localGameData.actualWord.includes(localGameData.guessMatrix[localGameData.currRow][i].letter)) {
+          // Special secret worlde rules... if the letter is already accounted for... 
+          if (redundantYellowTest(localGameData, localGameData.currRow, i)) {
+            localGameData.guessMatrix[localGameData.currRow][i].color = 'D';
+          }
+          else {
+            localGameData.guessMatrix[localGameData.currRow][i].color = 'Y';
+          }
+        }
+        else {
+          localGameData.guessMatrix[localGameData.currRow][i].color = 'D';
+        }
+      }
+    }
+
     //console.log(gameData.currRow);
     var localGameData = gameData;
 
-    if(seconds < 1){
+    if (seconds < 1) {
       // game is over
       return;
     }
@@ -407,23 +585,30 @@ function App() {
         var perfLetters = 0;
         var word = "";
         for (let i = 0; i < WORD_LENGTH; i++) {
-          if (localGameData.guessMatrix[localGameData.currRow][i] === localGameData.actualWord.charAt(i)) {
+          if (localGameData.guessMatrix[localGameData.currRow][i].letter === localGameData.actualWord.charAt(i)) {
             perfLetters++;
           }
-          word += localGameData.guessMatrix[localGameData.currRow][i];
+          word += localGameData.guessMatrix[localGameData.currRow][i].letter;
         }
 
         //console.log(word);
         if (!DEV_MODE && !isValidWord(word)) {
-          setAlert({ message: "" + word + " is not in word list", type: "invalid", timestamp: seconds});
+          setAlert({ message: "" + word + " is not in word list", type: "invalid", timestamp: seconds });
           return;
         }
+
+
+        // loop through row.. assign colors.
+        assignColors(localGameData);
+
+        // Store the row in history
+        localGameData.guessHistory.push(localGameData.guessMatrix[localGameData.currRow]);
 
         if (perfLetters === WORD_LENGTH) {
           gameData.winCount++;
           newRound();
-          setAlert({ message: "You got it!: " + word, type: "success", timestamp: seconds});
-          //console.log("You Win");
+          setAlert({ message: "You got it!: " + word, type: "success", timestamp: seconds });
+          //TODO: if wincount meets win condition... end game, show scoreboard.
           return;
         }
         else if (localGameData.currRow === (NUM_GUESSES - 1)) {
@@ -431,27 +616,29 @@ function App() {
           //console.log("You Lose")
         }
 
+
+
         localGameData.currRow++;
         localGameData.currCol = 0;
       }
       else {
         //Handle invalid enter push.
-        setAlert({ message: "Type a full word", type: "invalid", timestamp: seconds});
+        setAlert({ message: "Type a full word", type: "invalid", timestamp: seconds });
       }
 
 
 
     } else if (input === "Backspace" && localGameData.currCol > 0) {
       localGameData.currCol--;
-      localGameData.guessMatrix[localGameData.currRow][localGameData.currCol] = '';
+      localGameData.guessMatrix[localGameData.currRow][localGameData.currCol].letter = '';
     }
     else if (/^[A-Z]$/i.test(input) && localGameData.currCol < WORD_LENGTH) {
-      localGameData.guessMatrix[localGameData.currRow][localGameData.currCol] = input.toUpperCase();
+      localGameData.guessMatrix[localGameData.currRow][localGameData.currCol].letter = input.toUpperCase();
       localGameData.currCol++;
       if (!isTimerRunning) {
         startTimer();
-        
-        setAlert({ message: "", type: "success", timestamp: seconds});
+
+        setAlert({ message: "", type: "success", timestamp: seconds });
       }
     }
     // We need a new reference to this object, or react wont re-render it...  Better solutions??
@@ -485,11 +672,11 @@ function App() {
     <div className="App">
       <header className="App-header">
 
-<ScoreBoard  gameData={gameData} seconds={seconds} setgameData={setgameData} setSeconds={setSeconds} />
-<Welcome />
+        <ScoreBoard gameData={gameData} seconds={seconds} setgameData={setgameData} setSeconds={setSeconds} />
+        <Welcome />
 
-        
-<Alerts alert={alert} seconds={seconds} gameData={gameData} />
+
+        <Alerts alert={alert} seconds={seconds} gameData={gameData} />
         <div className="container">
           <div className='row'>
             <div className='col'>
@@ -554,6 +741,7 @@ function App() {
             <SpecialButton name="Backspace" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
           </div>
         </div>
+
 
 
       </header>
