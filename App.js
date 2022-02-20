@@ -4,12 +4,20 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Modal, Tooltip, OverlayTrigger } from 'react-bootstrap'
 
 
+
+const GAME_STATE_INIT = 0;
+const GAME_STATE_ACTIVE = 1;
+const GAME_STATE_END = 3;
+
 // Global constants seem fine, since they will never change, they have nothing to do with state or re-rendering events
 const WORD_LENGTH = 5;
 const NUM_GUESSES = 6;
-const ROUND_TIME = 10;
+const ROUND_TIME = 30;
 const DAILY_MODE_DAY_1 = "02/10/2022"; // The first day of daily mode
 const DEV_MODE = true;
+const MAX_WINS = 5;
+
+
 
 
 function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
@@ -71,6 +79,12 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
 
   function copyToClipBoard() {
 
+
+    if(DEV_MODE){
+      // Also clear local data.
+      localStorage.removeItem("gameData");
+    }
+
     var results = "WordBlitz: " + gameData.dateFormatted;
     results += "\r\n"
     results += gameData.winCount + " Points";
@@ -98,6 +112,9 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
       }
       results += "\r\n"
     });
+    if(gameData.gameState === GAME_STATE_END){
+      results += "+" + gameData.winTimeRemaining + "s Left!";
+    }
 
     navigator.clipboard.writeText(results).then(function () {
       console.log('Async: Copying to clipboard was successful!');
@@ -109,7 +126,7 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
   }
 
   return (
-    <Modal id="derp" show={seconds <= 0} onHide={handleClose}>
+    <Modal id="derp" show={seconds <= 0 || gameData.winCount >= MAX_WINS} onHide={handleClose}>
       <Modal.Header >
         <Modal.Title>WordBlitz </Modal.Title>
       </Modal.Header>
@@ -117,6 +134,8 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
         <div>Game  #{gameData.gameID} {gameData.dateFormatted} </div>
         <div><b> Score: {gameData.winCount}</b></div>
         <div>The last word was: {gameData.actualWord}</div>
+        <div> {gameData.winCount >= MAX_WINS ? <span>You got all the words with {seconds} seconds remaining</span>: null }</div>
+        
 
       </Modal.Body>
       <Modal.Footer>
@@ -157,14 +176,14 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
 function Welcome({ gameData, setgameData, seconds, setSeconds }) {
 
   const [show, setShow] = useState(true);
-
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+
 
   return (
 
 
-    <Modal show={show} onHide={handleClose}>
+    <Modal show={show && gameData.gameState === GAME_STATE_INIT} onHide={handleClose}>
       <Modal.Header >
         <Modal.Title>WordBlitz</Modal.Title>
       </Modal.Header>
@@ -192,7 +211,7 @@ function Welcome({ gameData, setgameData, seconds, setSeconds }) {
 }
 
 
-function RestartButton({ gameData, setgameData, seconds, setSeconds }) {
+/*function RestartButton({ gameData, setgameData, seconds, setSeconds }) {
 
   // Finding it easier to repeat some functions rather than make them available to both methods.. 
   // This is probably bad practice.  
@@ -221,7 +240,7 @@ function RestartButton({ gameData, setgameData, seconds, setSeconds }) {
 
   return (<button onClick={() => resetGame()} className='btn btn-primary' style={{ visibility: seconds === 0 ? 'visible' : 'hidden' }}>New Game</button>)
 
-}
+}*/
 
 function Timer({ timeleft }) {
   var minutes = parseInt(timeleft / 60, 10);
@@ -438,16 +457,26 @@ function App() {
 
   // Using 1 megaobject to control everything about the state of the game.  
   // It seems like for a bigger app you might want to isolate things, but this makes my life easy for now
-  const [gameData, setgameData] = useState(
-    {
+  const [gameData, setgameData] = useState(() => {
+
+    const savedGameData = localStorage.getItem("gameData");
+    const initialValue = JSON.parse(savedGameData);
+    //If we can find game data in local storage...  and that game data is the same game number as 
+    //the current game... load the game data.   (deal with modal welcome issues?)
+    if(initialValue != null && initialValue.gameID === getUniqueGameNumber(date)){
+      return initialValue;
+    }
+    else return {
       actualWord: getRandWord(getUniqueGameNumber(date) + 0),
       currRow: 0,
       currCol: 0,
-      gameState: 0,
+      gameState: GAME_STATE_INIT,
       gameID: getUniqueGameNumber(date),
       date: date,
       dateFormatted: prettyDate,
+      gameStartTime: null,
       winCount: 0,
+      winTimeRemaining: null,
       guessMatrix: [[{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
       [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
       [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
@@ -455,12 +484,15 @@ function App() {
       [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
       [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }]],
       guessHistory: []
-    });
+    }
+
+  });
 
 
-//TODO:  If we can find game data in local storage...  and that game data is the same game number as the current game... load the game data.   (deal with modal welcome issues?)
+  
 
   const [alert, setAlert] = useState({ message: "", type: "" });
+
 
 
   // TIMER STUFF
@@ -477,19 +509,83 @@ function App() {
       setIntervalID(setInterval(update, 1000))
     }
   }, [hasTimerEnded, isTimerRunning])
-  /*const stopTimer = () => {
+  const stopTimer = useCallback(() => {
     clearInterval(intervalID)
     setIntervalID(null)
-  }*/
+  }, [intervalID])
   // clear interval when the timer ends
   useEffect(() => {
     if (hasTimerEnded) {
+      // TODO: Set game state here?  maybe not.. if we can use seconds=0 as a lose state.
       clearInterval(intervalID)
       setIntervalID(null)
     }
   }, [hasTimerEnded, intervalID])
 
 
+  function secondsSince(date){
+    var currentTime = new Date();
+    var dif = currentTime.getTime() - date.getTime();
+    return Math.round(dif / 1000);
+  }
+
+// TODO: KEEP TRACK OF GAME END TIMESTAMP??   
+//  If the game is ended... show the time the game ended on. // I dont have this info do i..
+// If the game is active, and the timer isnt started yet...  set seconds to the correct time left.. and start timer..  but only do this once..
+//      If there is 0 time left..  end of game should be handled.   If the end of game modal displays...  game state should go to end
+// If the game is init dont do anything.. \
+// seconds = 0 can be gamestate lose...      gamestate end should onyl mean win??
+  const initTimer = useCallback(() => {
+
+    console.log("Game state: " + gameData.gameState.name + " Started on: " + gameData.gameStartTime)
+    
+    console.log("Game state is active : " + (gameData.gameState === GAME_STATE_ACTIVE))
+    if(gameData.gameState === GAME_STATE_END){
+      setSeconds(gameData.winTimeRemaining)
+    }
+    else if(gameData.gameState === GAME_STATE_ACTIVE){
+      console.log("Has timer ended: " + hasTimerEnded + " is timer running: " + isTimerRunning)
+      if (gameData.gameStartTime !== null && !hasTimerEnded && !isTimerRunning) {
+        var secondsLeft = ROUND_TIME - secondsSince(new Date(gameData.gameStartTime));
+        console.log("Still game left: " + secondsLeft)
+        if(secondsLeft > 0){
+          setSeconds(secondsLeft);
+          startTimer();
+        }
+        else{
+          console.log("no game left: " + secondsLeft)
+          // Gamestate LOSE
+          setSeconds(0);
+        }
+      }
+    }
+  }, [gameData, hasTimerEnded, isTimerRunning, startTimer]);
+
+
+  useEffect(() => {
+    initTimer(); // this will fire only on first render (THIS IS A LIE.. its firing all the time, its firing on every input change)
+  }, [initTimer]);
+
+  // If gameStartTime !== null
+  // set seconds to difference (OR ZERO)
+  // startTimer
+  //  TODO:  ONLY WANT TO DO THIS ONCE.. ON PAGE LOAD
+ /* useEffect(() => {
+    console.log("doing this")
+    if (gameData.gameStartTime !== null && !hasTimerEnded && !isTimerRunning) {
+      var secondsLeft = ROUND_TIME - secondsSince(new Date(gameData.gameStartTime));
+      if (secondsLeft > 0 && !hasTimerEnded && !isTimerRunning){
+        setSeconds(secondsLeft);
+        // Still game left
+        if(gameData.winCount < MAX_WINS){
+          startTimer();
+        }
+      }
+      else if(secondsLeft <= 0){
+        setSeconds(0);
+      }
+    }
+  }, [gameData, startTimer, hasTimerEnded, isTimerRunning])*/
 
   // useCallback fixed issues here.   this is complex, do more research on this.
   // https://stackoverflow.com/questions/55840294/how-to-fix-missing-dependency-warning-when-using-useeffect-react-hook
@@ -513,7 +609,9 @@ function App() {
       [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
       [{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }]];
 
-      setgameData(JSON.parse(JSON.stringify(localGameData)))
+      localStorage.setItem("gameData", JSON.stringify(localGameData));
+
+      setgameData(JSON.parse(JSON.stringify(localGameData)));
 
     }
 
@@ -605,21 +703,32 @@ function App() {
         localGameData.guessHistory.push(localGameData.guessMatrix[localGameData.currRow]);
 
         if (perfLetters === WORD_LENGTH) {
-          gameData.winCount++;
-          newRound();
+          localGameData.winCount++;
+          
           setAlert({ message: "You got it!: " + word, type: "success", timestamp: seconds });
-          //TODO: if wincount meets win condition... end game, show scoreboard.
-          return;
+          //TODO: if wincount meets win condition... end game
+          if(localGameData.winCount >= MAX_WINS){
+            localGameData.gameState = GAME_STATE_END;
+            localGameData.winTimeRemaining = seconds;
+            stopTimer();
+            localStorage.setItem("gameData", JSON.stringify(localGameData));
+            return;
+          }
+          else{
+            localStorage.setItem("gameData", JSON.stringify(localGameData));
+            newRound();
+            return;
+          }
         }
         else if (localGameData.currRow === (NUM_GUESSES - 1)) {
           setSeconds(0);
           //console.log("You Lose")
         }
 
-
-
         localGameData.currRow++;
         localGameData.currCol = 0;
+        
+        localStorage.setItem("gameData", JSON.stringify(localGameData));
       }
       else {
         //Handle invalid enter push.
@@ -637,7 +746,9 @@ function App() {
       localGameData.currCol++;
       if (!isTimerRunning) {
         startTimer();
-
+        // Timer started... save timestamp of start time.
+        localGameData.gameState = GAME_STATE_ACTIVE;
+        localGameData.gameStartTime = new Date();
         setAlert({ message: "", type: "success", timestamp: seconds });
       }
     }
@@ -647,7 +758,7 @@ function App() {
 
     //console.log(localGameData)
 
-  }, [gameData, startTimer, isTimerRunning, seconds])
+  }, [gameData, startTimer, isTimerRunning, seconds, stopTimer])
 
   // UseEffect calling this function (in additon to the button) caused all kinds of problems with the state, 
   // this useCallback fixed them.   this is complex, do more research on this.
@@ -673,7 +784,7 @@ function App() {
       <header className="App-header">
 
         <ScoreBoard gameData={gameData} seconds={seconds} setgameData={setgameData} setSeconds={setSeconds} />
-        <Welcome />
+        <Welcome gameData={gameData} seconds={seconds} />
 
 
         <Alerts alert={alert} seconds={seconds} gameData={gameData} />
