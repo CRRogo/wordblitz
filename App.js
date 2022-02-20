@@ -80,7 +80,7 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
   function copyToClipBoard() {
 
 
-    if(DEV_MODE){
+    if (DEV_MODE) {
       // Also clear local data.
       localStorage.removeItem("gameData");
     }
@@ -112,7 +112,7 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
       }
       results += "\r\n"
     });
-    if(gameData.gameState === GAME_STATE_END){
+    if (gameData.gameState === GAME_STATE_END) {
       results += "+" + gameData.winTimeRemaining + "s Left!";
     }
 
@@ -134,8 +134,8 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
         <div>Game  #{gameData.gameID} {gameData.dateFormatted} </div>
         <div><b> Score: {gameData.winCount}</b></div>
         <div>The last word was: {gameData.actualWord}</div>
-        <div> {gameData.winCount >= MAX_WINS ? <span>You got all the words with {seconds} seconds remaining</span>: null }</div>
-        
+        <div> {gameData.winCount >= MAX_WINS ? <span>You got all the words with {seconds} seconds remaining</span> : null}</div>
+
 
       </Modal.Body>
       <Modal.Footer>
@@ -376,27 +376,54 @@ function LetterBox(props) {
 
   var thisLetter = props.gameData.guessMatrix[props.row][props.column].letter;
   var thisColor = props.gameData.guessMatrix[props.row][props.column].color;
-
-  const getColor = () => {
+  //https://stackoverflow.com/questions/34833907/how-to-flip-the-div-using-css
+  // maybe this ^
+  const getClass = () => {
+    var colorString = ""
     if (thisColor === "G") {
-      return "letterbox alert alert-success";
+      colorString = "back face letterbox alert alert-success ";
     }
     else if (thisColor === "Y") {
-      return "letterbox alert alert-warning";
+      colorString = "back face letterbox alert alert-warning ";
 
     }
     else if (thisColor === "D") {
-      return "letterbox alert alert-dark";
+      colorString = "back face letterbox alert alert-dark ";
     }
     else {
-      return "letterbox alert alert-secondary";
+      colorString = "back face letterbox alert alert-secondary ";
     }
+    return colorString;
+  }
+
+// difference between p and div... use p to move text within the div??
+  const getInContClass = () => {
+    var colorString = "delay-" + (props.column) + " "
+    if (thisColor === "G") {
+      colorString += "LBInCont LBRot ";
+    }
+    else if (thisColor === "Y") {
+      colorString += "LBInCont LBRot ";
+
+    }
+    else if (thisColor === "D") {
+      colorString += "LBInCont LBRot ";
+    }
+    else {
+      colorString += "LBInCont ";
+    }
+    return colorString;
   }
 
   // I cant concatinate the response of getColor to "alert alert-"
   return (
     <div className="col col-sm-2">
-      <div className={getColor()}>{thisLetter}</div>
+      <div className="LBCont ">
+        <div className={getInContClass()}>
+          <div className="front face letterbox alert alert-secondary "><p>{thisLetter}</p></div>
+          <div className={getClass()}><p>{thisLetter}</p></div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -463,7 +490,7 @@ function App() {
     const initialValue = JSON.parse(savedGameData);
     //If we can find game data in local storage...  and that game data is the same game number as 
     //the current game... load the game data.   (deal with modal welcome issues?)
-    if(initialValue != null && initialValue.gameID === getUniqueGameNumber(date)){
+    if (initialValue != null && initialValue.gameID === getUniqueGameNumber(date)) {
       return initialValue;
     }
     else return {
@@ -489,7 +516,7 @@ function App() {
   });
 
 
-  
+
 
   const [alert, setAlert] = useState({ message: "", type: "" });
 
@@ -523,36 +550,36 @@ function App() {
   }, [hasTimerEnded, intervalID])
 
 
-  function secondsSince(date){
+  function secondsSince(date) {
     var currentTime = new Date();
     var dif = currentTime.getTime() - date.getTime();
     return Math.round(dif / 1000);
   }
 
-// TODO: KEEP TRACK OF GAME END TIMESTAMP??   
-//  If the game is ended... show the time the game ended on. // I dont have this info do i..
-// If the game is active, and the timer isnt started yet...  set seconds to the correct time left.. and start timer..  but only do this once..
-//      If there is 0 time left..  end of game should be handled.   If the end of game modal displays...  game state should go to end
-// If the game is init dont do anything.. \
-// seconds = 0 can be gamestate lose...      gamestate end should onyl mean win??
+  // TODO: KEEP TRACK OF GAME END TIMESTAMP??   
+  //  If the game is ended... show the time the game ended on. // I dont have this info do i..
+  // If the game is active, and the timer isnt started yet...  set seconds to the correct time left.. and start timer..  but only do this once..
+  //      If there is 0 time left..  end of game should be handled.   If the end of game modal displays...  game state should go to end
+  // If the game is init dont do anything.. \
+  // seconds = 0 can be gamestate lose...      gamestate end should onyl mean win??
   const initTimer = useCallback(() => {
 
     console.log("Game state: " + gameData.gameState.name + " Started on: " + gameData.gameStartTime)
-    
+
     console.log("Game state is active : " + (gameData.gameState === GAME_STATE_ACTIVE))
-    if(gameData.gameState === GAME_STATE_END){
+    if (gameData.gameState === GAME_STATE_END) {
       setSeconds(gameData.winTimeRemaining)
     }
-    else if(gameData.gameState === GAME_STATE_ACTIVE){
+    else if (gameData.gameState === GAME_STATE_ACTIVE) {
       console.log("Has timer ended: " + hasTimerEnded + " is timer running: " + isTimerRunning)
       if (gameData.gameStartTime !== null && !hasTimerEnded && !isTimerRunning) {
         var secondsLeft = ROUND_TIME - secondsSince(new Date(gameData.gameStartTime));
         console.log("Still game left: " + secondsLeft)
-        if(secondsLeft > 0){
+        if (secondsLeft > 0) {
           setSeconds(secondsLeft);
           startTimer();
         }
-        else{
+        else {
           console.log("no game left: " + secondsLeft)
           // Gamestate LOSE
           setSeconds(0);
@@ -570,22 +597,22 @@ function App() {
   // set seconds to difference (OR ZERO)
   // startTimer
   //  TODO:  ONLY WANT TO DO THIS ONCE.. ON PAGE LOAD
- /* useEffect(() => {
-    console.log("doing this")
-    if (gameData.gameStartTime !== null && !hasTimerEnded && !isTimerRunning) {
-      var secondsLeft = ROUND_TIME - secondsSince(new Date(gameData.gameStartTime));
-      if (secondsLeft > 0 && !hasTimerEnded && !isTimerRunning){
-        setSeconds(secondsLeft);
-        // Still game left
-        if(gameData.winCount < MAX_WINS){
-          startTimer();
-        }
-      }
-      else if(secondsLeft <= 0){
-        setSeconds(0);
-      }
-    }
-  }, [gameData, startTimer, hasTimerEnded, isTimerRunning])*/
+  /* useEffect(() => {
+     console.log("doing this")
+     if (gameData.gameStartTime !== null && !hasTimerEnded && !isTimerRunning) {
+       var secondsLeft = ROUND_TIME - secondsSince(new Date(gameData.gameStartTime));
+       if (secondsLeft > 0 && !hasTimerEnded && !isTimerRunning){
+         setSeconds(secondsLeft);
+         // Still game left
+         if(gameData.winCount < MAX_WINS){
+           startTimer();
+         }
+       }
+       else if(secondsLeft <= 0){
+         setSeconds(0);
+       }
+     }
+   }, [gameData, startTimer, hasTimerEnded, isTimerRunning])*/
 
   // useCallback fixed issues here.   this is complex, do more research on this.
   // https://stackoverflow.com/questions/55840294/how-to-fix-missing-dependency-warning-when-using-useeffect-react-hook
@@ -704,17 +731,17 @@ function App() {
 
         if (perfLetters === WORD_LENGTH) {
           localGameData.winCount++;
-          
+
           setAlert({ message: "You got it!: " + word, type: "success", timestamp: seconds });
           //TODO: if wincount meets win condition... end game
-          if(localGameData.winCount >= MAX_WINS){
+          if (localGameData.winCount >= MAX_WINS) {
             localGameData.gameState = GAME_STATE_END;
             localGameData.winTimeRemaining = seconds;
             stopTimer();
             localStorage.setItem("gameData", JSON.stringify(localGameData));
             return;
           }
-          else{
+          else {
             localStorage.setItem("gameData", JSON.stringify(localGameData));
             newRound();
             return;
@@ -727,7 +754,7 @@ function App() {
 
         localGameData.currRow++;
         localGameData.currCol = 0;
-        
+
         localStorage.setItem("gameData", JSON.stringify(localGameData));
       }
       else {
