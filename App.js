@@ -398,7 +398,10 @@ function LetterBox(props) {
 
 // difference between p and div... use p to move text within the div??
   const getInContClass = () => {
-    var colorString = "delay-" + (props.column) + " "
+
+    // if showing a letter
+    var colorString = ""
+    var delayString = "delay-" + (props.column) + " "
     if (thisColor === "G") {
       colorString += "LBInCont LBRot ";
     }
@@ -410,9 +413,19 @@ function LetterBox(props) {
       colorString += "LBInCont LBRot ";
     }
     else {
-      colorString += "LBInCont ";
+      colorString += "LBInCont LBNot ";
+      delayString = "delay-instant "
     }
-    return colorString;
+    return colorString + delayString;
+  }
+
+  const getFrontClass = () => {
+    var bulgeString = ""
+    if(thisLetter !== null && thisLetter !== ''){
+      bulgeString = "bulgeLB "
+    }
+
+    return "front face letterbox alert alert-secondary " + bulgeString;
   }
 
   // I cant concatinate the response of getColor to "alert alert-"
@@ -420,7 +433,7 @@ function LetterBox(props) {
     <div className="col col-sm-2">
       <div className="LBCont ">
         <div className={getInContClass()}>
-          <div className="front face letterbox alert alert-secondary "><p>{thisLetter}</p></div>
+          <div className={getFrontClass()}><p>{thisLetter}</p></div>
           <div className={getClass()}><p>{thisLetter}</p></div>
         </div>
       </div>
