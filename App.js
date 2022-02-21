@@ -381,57 +381,66 @@ function LetterBox(props) {
   const getClass = () => {
     var colorString = ""
     if (thisColor === "G") {
-      colorString = "back face letterbox alert alert-success ";
+      colorString = "front face letterbox alert alert-success ";
     }
     else if (thisColor === "Y") {
-      colorString = "back face letterbox alert alert-warning ";
+      colorString = "front face letterbox alert alert-warning ";
 
     }
     else if (thisColor === "D") {
-      colorString = "back face letterbox alert alert-dark ";
+      colorString = "front face letterbox alert alert-dark ";
     }
     else {
-      colorString = "back face letterbox alert alert-secondary ";
+      colorString = "front face letterbox alert alert-secondary ";
     }
     return colorString;
   }
 
 // difference between p and div... use p to move text within the div??
   const getInContClass = () => {
-
     // if showing a letter
+    var buldgeString = ""
     var colorString = ""
     var delayString = "delay-" + (props.column) + " "
     if (thisColor === "G") {
-      colorString += "LBInCont LBRot ";
+      colorString += "LBInCont LBRotBack ";
     }
     else if (thisColor === "Y") {
-      colorString += "LBInCont LBRot ";
+      colorString += "LBInCont LBRotBack ";
 
     }
     else if (thisColor === "D") {
-      colorString += "LBInCont LBRot ";
+      colorString += "LBInCont LBRotBack ";
     }
     else {
-      colorString += "LBInCont LBNot ";
+
+      colorString += "LBInCont LBRot ";
       delayString = "delay-instant "
     }
-    return colorString + delayString;
+    return delayString + colorString + buldgeString;
   }
 
   const getFrontClass = () => {
-    var bulgeString = ""
-    if(thisLetter !== null && thisLetter !== ''){
-      bulgeString = "bulgeLB "
-    }
 
-    return "front face letterbox alert alert-secondary " + bulgeString;
+
+    return "back face letterbox alert alert-secondary ";
+  }
+
+  const getContClass = () => {
+    //TODO:  if it has a letter, but no color dont do rotate
+    var buldgeString = "";
+    if(thisColor === '' || thisColor === null){
+      if(thisLetter !== '' && thisLetter !== null){
+        buldgeString = "bulgerLB ";
+      }
+    }
+    return "LBCont " + buldgeString;
   }
 
   // I cant concatinate the response of getColor to "alert alert-"
   return (
     <div className="col col-sm-2">
-      <div className="LBCont ">
+      <div className={getContClass()}>
         <div className={getInContClass()}>
           <div className={getFrontClass()}><p>{thisLetter}</p></div>
           <div className={getClass()}><p>{thisLetter}</p></div>
