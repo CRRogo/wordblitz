@@ -7,13 +7,13 @@ import { Button, Modal, Tooltip, OverlayTrigger } from 'react-bootstrap'
 
 const GAME_STATE_INIT = 0;
 const GAME_STATE_ACTIVE = 1;
-const GAME_STATE_END = 3;
+const GAME_STATE_END = 3; // This is actually soley for the WIN condition.   seconds = 0 is the lose condition.
 
 // Global constants seem fine, since they will never change, they have nothing to do with state or re-rendering events
 const WORD_LENGTH = 5;
 const NUM_GUESSES = 6;
 const ROUND_TIME = 30;
-const DAILY_MODE_DAY_1 = "02/11/2022"; // The first day of daily mode
+const DAILY_MODE_DAY_1 = "02/12/2022"; // The first day of daily mode
 const DEV_MODE = true;
 const MAX_WINS = 5;
 
@@ -133,8 +133,8 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
       <Modal.Body>
         <div>Game  #{gameData.gameID} {gameData.dateFormatted} </div>
         <div><b> Score: {gameData.winCount}</b></div>
-        <div>The last word was: {gameData.actualWord}</div>
-        <div> {gameData.winCount >= MAX_WINS ? <span>You got all the words with {seconds} seconds remaining</span> : null}</div>
+        {gameData.winCount < MAX_WINS ? <div>The last word was: {gameData.actualWord}</div> : null}
+         {gameData.winCount >= MAX_WINS ? <div>You Won! with {seconds} seconds remaining</div> : null}
 
 
       </Modal.Body>
@@ -185,17 +185,17 @@ function Welcome({ gameData, setgameData, seconds, setSeconds }) {
 
     <Modal show={show && gameData.gameState === GAME_STATE_INIT} onHide={handleClose}>
       <Modal.Header >
-        <Modal.Title>WordBlitz</Modal.Title>
+        <Modal.Title>WordBlitz: Game #{gameData.gameID}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <ul>
-          <li>Try to solve as many word puzzles as you can in the allotted time.</li>
+          <li>Try to solve 5 word puzzles in 2 minutes.</li>
           <li>The timer will start as soon as you start typing!</li>
           <li>Type a 5 letter word and hit ↩ (Enter) to submit it</li>
           <li>
             <div>🟩 Perfect match</div>
             <div>🟨 Right letter, wrong location</div>
-            <div>⬛ Letter not in word</div>
+            <div>⬛ Letter is not in word</div>
           </li>
         </ul>
         <div>A new puzzle will begin immediately after you solve the puzzle, each puzzle solved earns 1 point.</div>
@@ -324,15 +324,16 @@ function KeyButton({ name, gameData, setgameData, inputHandler }) {
     return false;
   }
 
+  //TODO: Keybord markup should be applied on a delay.
   const getColor = (thisLetter) => {
     if (thisLetter !== '' && isPerfectlyMatched(thisLetter)) {
-      return "key btn btn-success";
+      return "key btn btn-success key-success";
     }
     else if (thisLetter !== '' && isMatched(thisLetter)) {
-      return "key btn btn-warning";
+      return "key btn btn-warning key-warning";
     }
     else if (isUsed(thisLetter)) {
-      return "key btn btn-dark";
+      return "key btn btn-dark key-dark";
     }
     else {
       return "key btn btn-secondary";

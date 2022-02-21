@@ -96,6 +96,7 @@
 
 .key {
   padding: 1rem 0.55rem;
+  min-width: 1.8em;
 }
 
 .row {
@@ -123,16 +124,16 @@
   transition: transform .2s linear 0s;
 }
 .delay-1 {
-  transition: transform .2s linear .2s;
+  transition: transform .2s linear .1s;
 }
 .delay-2 {
-  transition: transform .2s linear .4s;
+  transition: transform .2s linear .2s;
 }
 .delay-3 {
-  transition: transform .2s linear .6s;
+  transition: transform .2s linear .3s;
 }
 .delay-4 {
-  transition: transform .2s linear .8s;
+  transition: transform .2s linear .4s;
 }
 
 
@@ -178,7 +179,7 @@
 
 .bulgerLB {
   transform: scale(1, 1);
-  animation: bulger .3s ease-out;
+  animation: bulger .2s ease-out;
 }
 @keyframes bulger {
   0%{
@@ -210,3 +211,34 @@
   background-color: #424242;
   border-color: #1e1e1e;
 }
+/*    TODO: This doesnt work.   Tried to make the keyboard text delayed, but it messes up the onhover and onclick events for the buttons.
+.key-success{
+  transition-property: background-color border-color color;
+  transition-timing-function: ease-in-out;
+  transition-duration: 0s;
+  transition-delay: 1s;
+  color: #fff;
+  background-color: #198754;
+  border-color: #198754;
+}
+
+.key-warning{
+  transition-property: background-color border-color color;
+  transition-timing-function: ease-in-out;
+  transition-duration: 0s;
+  transition-delay: 1s;
+  color: #000;
+  background-color: #ffc107;
+  border-color: #ffc107;
+}
+
+.key-dark{
+  transition-property: background-color border-color color;
+  transition-timing-function: ease-in-out;
+  transition-duration: 0s;
+  transition-delay: 1s;
+  color: #fff;
+  background-color: #212529;
+  border-color: #212529;
+}*/
+
