@@ -13,7 +13,7 @@ const GAME_STATE_END = 3;
 const WORD_LENGTH = 5;
 const NUM_GUESSES = 6;
 const ROUND_TIME = 30;
-const DAILY_MODE_DAY_1 = "02/10/2022"; // The first day of daily mode
+const DAILY_MODE_DAY_1 = "02/11/2022"; // The first day of daily mode
 const DEV_MODE = true;
 const MAX_WINS = 5;
 
@@ -471,6 +471,7 @@ function App() {
   }
 
   function getRandWord(seed) {
+    console.log("SEED: " + seed);
     return DICTIONARY[Math.floor(random(seed) * DICTIONARY.length)].toUpperCase();
   }
 
@@ -516,7 +517,7 @@ function App() {
       return initialValue;
     }
     else return {
-      actualWord: getRandWord(getUniqueGameNumber(date) + 0),
+      actualWord: getRandWord((getUniqueGameNumber(date) * 10) + 0),
       currRow: 0,
       currCol: 0,
       gameState: GAME_STATE_INIT,
@@ -642,13 +643,14 @@ function App() {
   const acceptInput = useCallback((input) => {
 
     function getRandWord(seed) {
+      console.log("SEED2: " + seed)
       return DICTIONARY[Math.floor(random(seed) * DICTIONARY.length)].toUpperCase();
     }
 
     function newRound() {
       var localGameData = gameData;
       console.log(localGameData);
-      localGameData.actualWord = getRandWord(getUniqueGameNumber(new Date(localGameData.date)) + localGameData.winCount);
+      localGameData.actualWord = getRandWord((getUniqueGameNumber(new Date(localGameData.date)) * 10) +  localGameData.winCount);
       localGameData.currRow = 0;
       localGameData.currCol = 0;
       localGameData.guessMatrix = [[{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
