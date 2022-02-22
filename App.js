@@ -2,6 +2,7 @@ import './App.css';
 import { DICTIONARY, DICTIONARY_EXTENDED } from './Dictionary.js'
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Modal, Tooltip, OverlayTrigger } from 'react-bootstrap'
+import { BrowserRouter} from "react-router-dom";
 
 
 
@@ -59,7 +60,7 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
       let diff = tomorrow - date; // difference in ms
 
       if (DEV_MODE || diff <= 0) {
-        return <Button onClick={() => {window.location.reload()}}>Ready Now!</Button>
+        return <Button onClick={() => { window.location.reload() }}>Ready Now!</Button>
       }
 
       let secondsLeft = Math.round(diff / 1000); // convert to seconds
@@ -134,7 +135,7 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
         <div>Game  #{gameData.gameID} {gameData.dateFormatted} </div>
         <div><b> Score: {gameData.winCount}</b></div>
         {gameData.winCount < MAX_WINS ? <div>The last word was: {gameData.actualWord}</div> : null}
-         {gameData.winCount >= MAX_WINS ? <div>You Won! with {seconds} seconds remaining</div> : null}
+        {gameData.winCount >= MAX_WINS ? <div>You Won! with {seconds} seconds remaining</div> : null}
 
 
       </Modal.Body>
@@ -369,7 +370,7 @@ function SpecialButton({ name, gameData, setgameData, inputHandler }) {
     if (mode === "Backspace") {
       return "key btn btn-secondary"
     }
-    else{
+    else {
       return "key keySpecial btn btn-secondary"
     }
   }
@@ -406,7 +407,7 @@ function LetterBox(props) {
     return colorString;
   }
 
-// difference between p and div... use p to move text within the div??
+  // difference between p and div... use p to move text within the div??
   const getInContClass = () => {
     // if showing a letter
     var buldgeString = ""
@@ -439,8 +440,8 @@ function LetterBox(props) {
   const getContClass = () => {
     //TODO:  if it has a letter, but no color dont do rotate
     var buldgeString = "";
-    if(thisColor === '' || thisColor === null){
-      if(thisLetter !== '' && thisLetter !== null){
+    if (thisColor === '' || thisColor === null) {
+      if (thisLetter !== '' && thisLetter !== null) {
         buldgeString = "bulgerLB ";
       }
     }
@@ -660,7 +661,7 @@ function App() {
     function newRound() {
       var localGameData = gameData;
       console.log(localGameData);
-      localGameData.actualWord = getRandWord((getUniqueGameNumber(new Date(localGameData.date)) * 10) +  localGameData.winCount);
+      localGameData.actualWord = getRandWord((getUniqueGameNumber(new Date(localGameData.date)) * 10) + localGameData.winCount);
       localGameData.currRow = 0;
       localGameData.currCol = 0;
       localGameData.guessMatrix = [[{ letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }, { letter: '', color: '' }],
@@ -841,83 +842,86 @@ function App() {
 
 
   return (
-    <div className="App">
-      <header className="App-header">
+    <BrowserRouter basename={process.env.PUBLIC_URL}>
+      <div className="App">
+        <header className="App-header">
 
-        <ScoreBoard gameData={gameData} seconds={seconds} setgameData={setgameData} setSeconds={setSeconds} />
-        <Welcome gameData={gameData} seconds={seconds} />
+          <ScoreBoard gameData={gameData} seconds={seconds} setgameData={setgameData} setSeconds={setSeconds} />
+          <Welcome gameData={gameData} seconds={seconds} />
 
 
-        <Alerts alert={alert} seconds={seconds} gameData={gameData} />
-        <div className="container">
-          <div className='row'>
-            <div className='col'>
+          <Alerts alert={alert} seconds={seconds} gameData={gameData} />
+          <div className="container">
+            <div className='row'>
+              <div className='col'>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="container">
-          <div className='row'>
-            <div className='col'>
-              <Wins gameData={gameData} />
+          <div className="container">
+            <div className='row'>
+              <div className='col'>
+                <Wins gameData={gameData} />
+              </div>
+              <div className='col'>
+                <Timer gameData={gameData} timeleft={seconds} />
+              </div>
             </div>
-            <div className='col'>
-              <Timer gameData={gameData} timeleft={seconds} />
+          </div>
+
+
+          <div className="container" id="letterBoxHolder">
+            <GuessRow row="0" gameData={gameData} />
+            <GuessRow row="1" gameData={gameData} />
+            <GuessRow row="2" gameData={gameData} />
+            <GuessRow row="3" gameData={gameData} />
+            <GuessRow row="4" gameData={gameData} />
+            <GuessRow row="5" gameData={gameData} />
+          </div>
+
+          <div className="container" id="keyboard">
+            <div className="keyrow">
+              <KeyButton name="Q" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="W" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="E" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="R" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="T" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="Y" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="U" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="I" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="O" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="P" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            </div>
+            <div className="keyrow">
+              <KeyButton name="A" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="S" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="D" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="F" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="G" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="H" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="J" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="K" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="L" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+            </div>
+            <div className="keyrow">
+              <SpecialButton name="Enter" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="Z" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="X" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="C" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="V" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="B" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="N" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <KeyButton name="M" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
+              <SpecialButton name="Backspace" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
             </div>
           </div>
-        </div>
-
-
-        <div className="container" id="letterBoxHolder">
-          <GuessRow row="0" gameData={gameData} />
-          <GuessRow row="1" gameData={gameData} />
-          <GuessRow row="2" gameData={gameData} />
-          <GuessRow row="3" gameData={gameData} />
-          <GuessRow row="4" gameData={gameData} />
-          <GuessRow row="5" gameData={gameData} />
-        </div>
-
-        <div className="container" id="keyboard">
-          <div className="keyrow">
-            <KeyButton name="Q" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="W" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="E" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="R" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="T" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="Y" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="U" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="I" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="O" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="P" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-          </div>
-          <div className="keyrow">
-            <KeyButton name="A" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="S" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="D" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="F" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="G" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="H" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="J" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="K" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="L" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-          </div>
-          <div className="keyrow">
-            <SpecialButton name="Enter" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="Z" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="X" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="C" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="V" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="B" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="N" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <KeyButton name="M" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-            <SpecialButton name="Backspace" gameData={gameData} setgameData={setgameData} inputHandler={acceptInput} />
-          </div>
-        </div>
 
 
 
-      </header>
-    </div>
+        </header>
+      </div>
+
+    </BrowserRouter>
   );
 }
 
