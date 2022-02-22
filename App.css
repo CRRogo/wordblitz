@@ -99,6 +99,10 @@
   min-width: 1.8em;
 }
 
+.key.keySpecial{
+  min-width: 3.4em;
+}
+
 .row {
   --bs-gutter-x: 0px;
 }
@@ -179,7 +183,7 @@
 
 .bulgerLB {
   transform: scale(1, 1);
-  animation: bulger .2s ease-out;
+  animation: bulger .15s ease-out;
 }
 @keyframes bulger {
   0%{

@@ -12,9 +12,9 @@ const GAME_STATE_END = 3; // This is actually soley for the WIN condition.   sec
 // Global constants seem fine, since they will never change, they have nothing to do with state or re-rendering events
 const WORD_LENGTH = 5;
 const NUM_GUESSES = 6;
-const ROUND_TIME = 30;
-const DAILY_MODE_DAY_1 = "02/12/2022"; // The first day of daily mode
-const DEV_MODE = true;
+const ROUND_TIME = 120;
+const DAILY_MODE_DAY_1 = "02/20/2022"; // The first day of daily mode
+const DEV_MODE = false;
 const MAX_WINS = 5;
 
 
@@ -58,8 +58,8 @@ function ScoreBoard({ gameData, setgameData, seconds, setSeconds }) {
       let tomorrow = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
       let diff = tomorrow - date; // difference in ms
 
-      if (diff <= 0) {
-        return "Ready Now!"
+      if (DEV_MODE || diff <= 0) {
+        return <Button onClick={() => {window.location.reload()}}>Ready Now!</Button>
       }
 
       let secondsLeft = Math.round(diff / 1000); // convert to seconds
@@ -365,9 +365,18 @@ function SpecialButton({ name, gameData, setgameData, inputHandler }) {
 
   }
 
+  const getClasses = (mode) => {
+    if (mode === "Backspace") {
+      return "key btn btn-secondary"
+    }
+    else{
+      return "key keySpecial btn btn-secondary"
+    }
+  }
+
 
   return (
-    <button className="key btn btn-secondary" onClick={() => inputHandler(name)}>{displayString(name)}</button>
+    <button className={getClasses(name)} onClick={() => inputHandler(name)}>{displayString(name)}</button>
 
   )
 }
