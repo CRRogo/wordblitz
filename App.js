@@ -482,7 +482,6 @@ function App() {
   }
 
   function getRandWord(seed) {
-    console.log("SEED: " + seed);
     return DICTIONARY[Math.floor(random(seed) * DICTIONARY.length)].toUpperCase();
   }
 
@@ -598,23 +597,23 @@ function App() {
   // seconds = 0 can be gamestate lose...      gamestate end should onyl mean win??
   const initTimer = useCallback(() => {
 
-    console.log("Game state: " + gameData.gameState.name + " Started on: " + gameData.gameStartTime)
+    //console.log("Game state: " + gameData.gameState.name + " Started on: " + gameData.gameStartTime)
 
-    console.log("Game state is active : " + (gameData.gameState === GAME_STATE_ACTIVE))
+    //console.log("Game state is active : " + (gameData.gameState === GAME_STATE_ACTIVE))
     if (gameData.gameState === GAME_STATE_END) {
       setSeconds(gameData.winTimeRemaining)
     }
     else if (gameData.gameState === GAME_STATE_ACTIVE) {
-      console.log("Has timer ended: " + hasTimerEnded + " is timer running: " + isTimerRunning)
+      //console.log("Has timer ended: " + hasTimerEnded + " is timer running: " + isTimerRunning)
       if (gameData.gameStartTime !== null && !hasTimerEnded && !isTimerRunning) {
         var secondsLeft = ROUND_TIME - secondsSince(new Date(gameData.gameStartTime));
-        console.log("Still game left: " + secondsLeft)
+       // console.log("Still game left: " + secondsLeft)
         if (secondsLeft > 0) {
           setSeconds(secondsLeft);
           startTimer();
         }
         else {
-          console.log("no game left: " + secondsLeft)
+          //console.log("no game left: " + secondsLeft)
           // Gamestate LOSE
           setSeconds(0);
         }
@@ -654,13 +653,11 @@ function App() {
   const acceptInput = useCallback((input) => {
 
     function getRandWord(seed) {
-      console.log("SEED2: " + seed)
       return DICTIONARY[Math.floor(random(seed) * DICTIONARY.length)].toUpperCase();
     }
 
     function newRound() {
       var localGameData = gameData;
-      console.log(localGameData);
       localGameData.actualWord = getRandWord((getUniqueGameNumber(new Date(localGameData.date)) * 10) + localGameData.winCount);
       localGameData.currRow = 0;
       localGameData.currCol = 0;
