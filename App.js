@@ -5,6 +5,8 @@ import { Button, Modal, Tooltip, OverlayTrigger } from 'react-bootstrap'
 import { BrowserRouter} from "react-router-dom";
 
 
+// npm start
+// npm run build
 
 const GAME_STATE_INIT = 0;
 const GAME_STATE_ACTIVE = 1;
@@ -503,13 +505,11 @@ function App() {
   function getUniqueGameNumber(date2) {
     // Day 1 of WordBlitz Daily 
     var date1 = new Date(DAILY_MODE_DAY_1);
-
     // To calculate the time difference of two dates
     var Difference_In_Time = date2.getTime() - date1.getTime();
-
     // To calculate the no. of days between two dates
     var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
-    return Difference_In_Days;
+    return Math.round(Difference_In_Days);
   }
 
   const date = new Date(getDateString());
